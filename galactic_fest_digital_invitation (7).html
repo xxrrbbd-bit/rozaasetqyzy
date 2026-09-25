@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="kk" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GALACTIC FEST — Арнайы Шақырту</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Cinzel:wght@500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        spaceBg: '#050814',
+                        spaceDark: '#0a0f24',
+                        cyanGlow: '#38bdf8',
+                        purpleGlow: '#818cf8',
+                        silverGlow: '#e2e8f0',
+                        accentViolet: '#a855f7'
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        serif: ['Cinzel', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Keyframe Animations & Glass Effects */
+        body {
+            background-color: #050814;
+            color: #f8fafc;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
+            touch-action: manipulation;
+        }
+
+        /* Glassmorphism Styles */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .glass-card-hover {
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .glass-card-hover:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(56, 189, 248, 0.4);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px 0 rgba(56, 189, 248, 0.15);
+        }
+
+        .glass-button {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            transition: all 0.3s ease;
+        }
+
+        .glass-button:hover {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(168, 85, 247, 0.25));
+            border-color: rgba(56, 189, 248, 0.6);
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Ambient Glow Spheres */
+        .glow-sphere {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(90px);
+            pointer-events: none;
+            opacity: 0.35;
+            z-index: 0;
+        }
+
+        /* Opening Intro Beam Animation */
+        @keyframes lightSweep {
+            0% {
+                transform: translateX(-100%) translateY(-100%) rotate(25deg);
+                opacity: 0;
+            }
+            30% {
+                opacity: 0.8;
+            }
+            70% {
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateX(200%) translateY(200%) rotate(25deg);
+                opacity: 0;
+            }
+        }
+
+        .light-beam {
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(135deg, transparent 40%, rgba(56, 189, 248, 0.3) 50%, transparent 60%);
+            animation: lightSweep 4s ease-in-out forwards;
+            pointer-events: none;
+        }
+
+        /* Text Shimmer Effect */
+        .text-glow {
+            text-shadow: 0 0 20px rgba(56, 189, 248, 0.5), 0 0 40px rgba(168, 85, 247, 0.3);
+        }
+
+        .gold-glow {
+            text-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+        }
+
+        /* Scroll Reveal Utility Classes */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #050814;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #38bdf8;
+        }
+    </style>
+</head>
+<body class="relative min-h-screen text-slate-100 selection:bg-cyan-500 selection:text-white">
+
+    <!-- Background Canvas for Ambient Star Particles -->
+    <canvas id="bgCanvas" class="fixed inset-0 w-full h-full pointer-events-none z-0 opacity-60"></canvas>
+
+    <!-- Background Ambient Glow Blobs -->
+    <div class="glow-sphere bg-cyan-600 w-96 h-96 top-10 -left-20"></div>
+    <div class="glow-sphere bg-purple-600 w-80 h-80 top-[40%] -right-20"></div>
+    <div class="glow-sphere bg-indigo-600 w-96 h-96 bottom-20 left-10"></div>
+
+    <!-- ==========================================
+         INTRO COVER SEQUENCE (Animated Canvas Layer)
+         ========================================== -->
+    <div id="intro-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#050814] transition-opacity duration-1000">
+        <!-- Soft Light Beam Effect Overlay -->
+        <div class="light-beam"></div>
+
+        <!-- Glowing Abstract Canvas Shapes -->
+        <div id="abstract-shape" class="relative flex items-center justify-center w-72 h-72 mb-6 transition-all duration-1000 scale-90 opacity-0">
+            <div class="absolute inset-0 rounded-full border border-cyan-500/30 animate-[spin_12s_linear_infinite]"></div>
+            <div class="absolute inset-4 rounded-full border border-purple-500/20 animate-[spin_8s_linear_infinite_reverse]"></div>
+            <div class="absolute inset-10 rounded-full bg-gradient-to-tr from-cyan-500/10 via-purple-500/20 to-transparent blur-md"></div>
+            
+            <!-- Abstract Lines Vector -->
+            <svg class="w-48 h-48 text-cyan-400/80 transform transition-transform duration-700" viewBox="0 0 100 100" fill="none" stroke="currentColor">
+                <circle cx="50" cy="50" r="45" stroke-width="0.5" stroke-dasharray="2 2"/>
+                <path d="M 50 5 Q 75 50 50 95 Q 25 50 50 5 Z" stroke-width="0.8" stroke-opacity="0.6"/>
+                <path d="M 5 50 Q 50 75 95 50 Q 50 25 5 50 Z" stroke-width="0.8" stroke-opacity="0.6"/>
+            </svg>
+        </div>
+
+        <!-- Intro Text Stage 1: Phased Quote -->
+        <div id="intro-stage-1" class="text-center px-6 transition-all duration-1000 transform opacity-0 translate-y-4">
+            <p class="text-xl md:text-2xl font-light tracking-[0.25em] text-cyan-200 leading-relaxed uppercase">
+                БІР КЕШ.<br>
+                БІР АТМОСФЕРА.<br>
+                КӨПТЕГЕН ӘСЕР.
+            </p>
+        </div>
+
+        <!-- Intro Text Stage 2: Main Brand Reveal -->
+        <div id="intro-stage-2" class="text-center px-6 absolute flex flex-col items-center justify-center opacity-0 pointer-events-none transition-all duration-1000 transform translate-y-4">
+            <h1 class="text-4xl md:text-6xl font-extrabold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-white to-purple-300 text-glow">
+                GALACTIC FEST
+            </h1>
+            <div class="h-0.5 w-16 bg-gradient-to-r from-transparent via-cyan-400 to-transparent my-4"></div>
+            <p class="text-xs md:text-sm font-medium tracking-[0.4em] text-slate-300 uppercase">
+                АРНАЙЫ ШАҚЫРТУ
+            </p>
+        </div>
+
+        <!-- Scroll Indicator Hint -->
+        <button id="skip-intro-btn" onclick="startExperience()" class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-0 transition-opacity duration-700 cursor-pointer group">
+            <span class="text-xs text-cyan-300/80 tracking-widest uppercase group-hover:text-cyan-200">Төмен сырғытыңыз</span>
+            <i class="fa-solid fa-chevron-down text-cyan-400 text-sm animate-bounce"></i>
+        </button>
+    </div>
+
+
+    <!-- ==========================================
+         MAIN DIGITAL INVITATION BODY
+         ========================================== -->
+    <main id="main-content" class="relative z-10 max-w-lg mx-auto min-h-screen px-4 py-8 flex flex-col gap-20">
+
+        <!-- --------------------------------------
+             1-БӨЛІМ: ФАКУЛЬТЕТ ЖӘНЕ КЕШ
+             -------------------------------------- -->
+        <section class="min-h-[85vh] flex flex-col justify-center items-center text-center pt-12 reveal">
+            <div class="glass-card w-full rounded-3xl p-8 relative overflow-hidden border border-white/10">
+                <!-- Decorative Corner Accents -->
+                <div class="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-cyan-400/40 rounded-tl-3xl"></div>
+                <div class="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-purple-400/40 rounded-br-3xl"></div>
+
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 mb-6">
+                    <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                    <span class="text-xs text-cyan-300 tracking-wider font-semibold uppercase">Шақырту хат</span>
+                </div>
+
+                <h2 class="text-xs md:text-sm font-bold text-slate-300 uppercase tracking-widest mb-3 leading-relaxed">
+                    ФИЗИКА, МАТЕМАТИКА ЖӘНЕ<br>
+                    ЦИФРЛЫҚ ТЕХНОЛОГИЯЛАР<br>
+                    ФАКУЛЬТЕТІ
+                </h2>
+
+                <p class="text-xs text-purple-300 font-medium tracking-wider mb-6 uppercase">
+                    1-курс студенттеріне арналған
+                </p>
+
+                <div class="my-6">
+                    <h1 class="text-3xl md:text-4xl font-extrabold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-200 via-white to-purple-200 text-glow">
+                        GALACTIC FEST
+                    </h1>
+                </div>
+
+                <div class="mt-8 pt-6 border-t border-white/10">
+                    <p class="text-sm italic text-cyan-100/90 font-light tracking-wide">
+                        «Жаңа орта. Жаңа таныстық.<br>Жаңа естеліктер.»
+                    </p>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- --------------------------------------
+             2-БӨЛІМ: ЖЕКЕ ШАҚЫРТУ (VIP Guest)
+             -------------------------------------- -->
+        <section class="min-h-[75vh] flex flex-col justify-center items-center text-center reveal">
+            <div class="glass-card w-full rounded-3xl p-8 relative overflow-hidden border border-cyan-500/30 bg-gradient-to-b from-white/[0.07] to-white/[0.02]">
+                
+                <div class="mb-4">
+                    <i class="fa-solid fa-crown text-amber-400 text-2xl filter drop-shadow-[0_0_10px_rgba(251,191,36,0.5)]"></i>
+                </div>
+
+                <span class="text-xs uppercase tracking-[0.3em] text-slate-400 font-semibold mb-2 block">
+                    ҚҰРМЕТТІ
+                </span>
+
+                <h2 class="text-2xl md:text-3xl font-extrabold tracking-wide text-white my-3 gold-glow">
+                    АЙНУР КОПЖАНҚЫЗЫ!
+                </h2>
+
+                <div class="w-12 h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto my-5"></div>
+
+                <p class="text-sm md:text-base text-slate-200 leading-relaxed font-normal mb-6">
+                    Сізді 1-курс студенттерінің алғашқы үлкен кешіне арнайы қонағымыз ретінде шақырамыз.
+                </p>
+
+                <div class="p-4 rounded-2xl bg-cyan-950/40 border border-cyan-500/20 backdrop-blur-sm">
+                    <p class="text-xs md:text-sm text-cyan-200 italic font-light">
+                        «Сізбен бірге бұл кештің әсері<br>одан әрі ерекше болмақ.»
+                    </p>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- --------------------------------------
+             3-БӨЛІМ: КЕШ ТУРАЛЫ (Date & Location Cards)
+             -------------------------------------- -->
+        <section class="flex flex-col justify-center items-center gap-6 reveal">
+            <div class="text-center mb-2">
+                <h3 class="text-2xl font-bold text-white tracking-widest">GALACTIC FEST</h3>
+                <p class="text-xs text-purple-300 italic mt-1">«Студенттік өмірдің жаңа парағы бірге ашылсын.»</p>
+            </div>
+
+            <div class="w-full grid grid-cols-1 gap-4">
+                <!-- Date Card -->
+                <div class="glass-card glass-card-hover rounded-2xl p-5 flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-cyan-500/20 border border-cyan-400/30 flex items-center justify-center text-cyan-300 text-xl shrink-0">
+                        <i class="fa-regular fa-calendar-check"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-400 uppercase tracking-wider block">Күні</span>
+                        <span class="text-lg font-bold text-white tracking-wide">28 ҚЫРКҮЙЕК 2026</span>
+                    </div>
+                </div>
+
+                <!-- Time Card -->
+                <div class="glass-card glass-card-hover rounded-2xl p-5 flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-purple-500/20 border border-purple-400/30 flex items-center justify-center text-purple-300 text-xl shrink-0">
+                        <i class="fa-regular fa-clock"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-400 uppercase tracking-wider block">Уақыты</span>
+                        <span class="text-lg font-bold text-white tracking-wide">18:00</span>
+                    </div>
+                </div>
+
+                <!-- Location Card -->
+                <div class="glass-card glass-card-hover rounded-2xl p-5 flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-indigo-300 text-xl shrink-0">
+                        <i class="fa-solid fa-location-dot"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-400 uppercase tracking-wider block">Мекенжайы</span>
+                        <span class="text-base font-bold text-white block">Гоголь көшесі, 114</span>
+                        <span class="text-xs text-cyan-300/80">АКТ залы</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- --------------------------------------
+             4-БӨЛІМ: ҚОНАҚТАР ЖӘНЕ ТОСЫНСЫЙЛАР
+             -------------------------------------- -->
+        <section class="flex flex-col items-center justify-center text-center reveal">
+            <h3 class="text-sm uppercase tracking-[0.3em] text-cyan-300 font-semibold mb-6">
+                КЕШ ҚОНАҚТАРЫ
+            </h3>
+
+            <!-- Performers / Guests Grid -->
+            <div class="grid grid-cols-2 gap-4 w-full mb-6">
+                <!-- Artist 1 -->
+                <div class="glass-card glass-card-hover rounded-2xl p-4 flex flex-col items-center text-center">
+                    <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-cyan-500/30 to-purple-500/30 border border-cyan-400/40 flex items-center justify-center mb-3 text-cyan-200">
+                        <i class="fa-solid fa-microphone-lines text-2xl"></i>
+                    </div>
+                    <span class="text-base font-extrabold tracking-wider text-white">ISATAY</span>
+                </div>
+
+                <!-- Artist 2 -->
+                <div class="glass-card glass-card-hover rounded-2xl p-4 flex flex-col items-center text-center">
+                    <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-500/30 to-indigo-500/30 border border-purple-400/40 flex items-center justify-center mb-3 text-purple-200">
+                        <i class="fa-solid fa-music text-2xl"></i>
+                    </div>
+                    <span class="text-base font-extrabold tracking-wider text-white">BIRZHAN</span>
+                </div>
+            </div>
+
+            <!-- Mystery Silhouettes Header -->
+            <div class="w-full glass-card rounded-2xl p-6 border border-white/10 relative overflow-hidden">
+                <span class="text-xs uppercase tracking-widest text-slate-400 block mb-4">ЖӘНЕ...</span>
+                
+                <div class="flex justify-center items-center gap-6 mb-4">
+                    <!-- Silhouette 1 -->
+                    <div class="flex flex-col items-center">
+                        <div class="w-14 h-14 rounded-full bg-slate-800/80 border border-dashed border-cyan-400/40 flex items-center justify-center text-slate-500 animate-pulse">
+                            <i class="fa-solid fa-user-secret text-2xl text-cyan-400/60"></i>
+                        </div>
+                    </div>
+
+                    <!-- Silhouette 2 -->
+                    <div class="flex flex-col items-center">
+                        <div class="w-14 h-14 rounded-full bg-slate-800/80 border border-dashed border-purple-400/40 flex items-center justify-center text-slate-500 animate-pulse">
+                            <i class="fa-solid fa-user-ninja text-2xl text-purple-400/60"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="text-xs text-slate-300 italic font-light">
+                    «Кештің кейбір тосынсыйлары әзірге құпия болып қалады.»
+                </p>
+            </div>
+        </section>
+
+
+        <!-- --------------------------------------
+             5-БӨЛІМ: ЖАУАП / RSVP INTERACTION
+             -------------------------------------- -->
+        <section class="min-h-[50vh] flex flex-col justify-center items-center text-center reveal">
+            <div class="glass-card w-full rounded-3xl p-8 relative overflow-hidden border border-purple-500/30">
+                <h3 class="text-xl font-bold tracking-widest text-white mb-6 uppercase">
+                    СІЗДІ КЕШТЕ КҮТЕМІЗ
+                </h3>
+
+                <!-- RSVP Action Buttons -->
+                <div class="flex flex-col gap-4 w-full">
+                    <button onclick="handleRsvp('yes')" class="glass-button w-full py-4 px-6 rounded-2xl flex items-center justify-between text-cyan-200 font-semibold group cursor-pointer">
+                        <span class="tracking-wider">КЕЛЕМІН</span>
+                        <i class="fa-solid fa-arrow-right text-cyan-400 group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+
+                    <button onclick="handleRsvp('no')" class="glass-button w-full py-4 px-6 rounded-2xl flex items-center justify-between text-slate-300 font-semibold group cursor-pointer">
+                        <span class="tracking-wider">КЕЛЕ АЛМАЙМЫН</span>
+                        <i class="fa-solid fa-arrow-right text-slate-400 group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- --------------------------------------
+             6-БӨЛІМ: СОҢЫ / FOOTER & SIGNATURE
+             -------------------------------------- -->
+        <section class="min-h-[60vh] flex flex-col justify-between items-center text-center py-10 reveal">
+            <div class="w-full flex flex-col items-center my-auto">
+                <i class="fa-solid fa-sparkles text-cyan-400 text-xl mb-4 opacity-80"></i>
+                
+                <h4 class="text-lg md:text-xl font-bold text-cyan-100 tracking-wider mb-6 uppercase leading-snug">
+                    «КЕЙБІР КЕШТЕР<br>ЕСТЕ ҚАЛУ ҮШІН ЖАСАЛАДЫ.»
+                </h4>
+
+                <div class="text-base font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-purple-300 tracking-widest mb-2">
+                    GALACTIC FEST
+                </div>
+                <div class="text-xs text-slate-400 tracking-widest mb-6">
+                    28.09.2026 | 18:00
+                </div>
+
+                <div class="w-16 h-px bg-white/20 my-4"></div>
+
+                <p class="text-xs text-cyan-200/90 font-medium tracking-wide uppercase max-w-xs mb-8">
+                    СІЗДІҢ ҚАТЫСУЫҢЫЗ БІЗ ҮШІН ҮЛКЕН ҚҰРМЕТ.
+                </p>
+            </div>
+
+            <!-- Faculty Signature -->
+            <div class="mt-auto pt-6 border-t border-white/10 w-full text-center">
+                <p class="text-xs text-slate-400 italic mb-2">Ізгі құрметпен,</p>
+                <p class="text-xs font-bold tracking-widest text-slate-200 uppercase leading-relaxed">
+                    ФИЗИКА, МАТЕМАТИКА ЖӘНЕ<br>
+                    ЦИФРЛЫҚ ТЕХНОЛОГИЯЛАР ФАКУЛЬТЕТІ
+                </p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ==========================================
+         RSVP RESPONSE MODAL / POPUP
+         ========================================== -->
+    <div id="rsvp-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-500">
+        <div id="rsvp-modal-card" class="glass-card max-w-sm w-full rounded-3xl p-6 text-center border border-cyan-400/40 transform scale-90 transition-transform duration-500 relative">
+            
+            <div id="modal-icon-wrapper" class="w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4 text-2xl">
+                <!-- Icon injected dynamically -->
+            </div>
+
+            <h4 id="modal-title" class="text-xl font-bold text-white mb-2"></h4>
+            <p id="modal-message" class="text-sm text-slate-200 leading-relaxed mb-6"></p>
+
+            <button onclick="closeModal()" class="glass-button w-full py-3 rounded-xl text-xs uppercase tracking-widest font-bold text-cyan-300 hover:text-white">
+                Жабу
+            </button>
+        </div>
+    </div>
+
+
+    <!-- ==========================================
+         JAVASCRIPT LOGIC & ANIMATIONS
+         ========================================== -->
+    <script>
+        // Starfield Ambient Particle Background
+        const canvas = document.getElementById('bgCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+
+        function resizeCanvas() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            initParticles();
+        }
+
+        function initParticles() {
+            particles = [];
+            const count = Math.floor((width * height) / 12000);
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    radius: Math.random() * 1.5 + 0.5,
+                    alpha: Math.random() * 0.7 + 0.3,
+                    speed: Math.random() * 0.3 + 0.1
+                });
+            }
+        }
+
+        function drawParticles() {
+            ctx.clearRect(0, 0, width, height);
+            ctx.fillStyle = '#ffffff';
+
+            particles.forEach(p => {
+                ctx.globalAlpha = p.alpha;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                p.y -= p.speed;
+                if (p.y < 0) {
+                    p.y = height;
+                    p.x = Math.random() * width;
+                }
+            });
+
+            requestAnimationFrame(drawParticles);
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        // Intro sequence orchestration
+        window.onload = function() {
+            resizeCanvas();
+            drawParticles();
+
+            // Timeline for Opening Intro Sequence
+            const abstractShape = document.getElementById('abstract-shape');
+            const introStage1 = document.getElementById('intro-stage-1');
+            const introStage2 = document.getElementById('intro-stage-2');
+            const skipBtn = document.getElementById('skip-intro-btn');
+
+            // Step 1: Shape reveals with soft glowing animation
+            setTimeout(() => {
+                abstractShape.classList.remove('opacity-0', 'scale-90');
+                abstractShape.classList.add('opacity-100', 'scale-100');
+            }, 500);
+
+            // Step 2: "БІР КЕШ. БІР АТМОСФЕРА. КӨПТЕГЕН ӘСЕР." appears
+            setTimeout(() => {
+                introStage1.classList.remove('opacity-0', 'translate-y-4');
+                introStage1.classList.add('opacity-100', 'translate-y-0');
+            }, 1800);
+
+            // Step 3: Stage 1 fades out, Stage 2 "GALACTIC FEST" appears
+            setTimeout(() => {
+                introStage1.classList.remove('opacity-100');
+                introStage1.classList.add('opacity-0');
+
+                setTimeout(() => {
+                    introStage2.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+                    introStage2.classList.add('opacity-100', 'translate-y-0');
+                    skipBtn.classList.remove('opacity-0');
+                    skipBtn.classList.add('opacity-100');
+                }, 800);
+            }, 4500);
+        };
+
+        // Smooth fade out intro screen to main content
+        function startExperience() {
+            const intro = document.getElementById('intro-screen');
+            intro.classList.add('opacity-0');
+            setTimeout(() => {
+                intro.style.display = 'none';
+            }, 1000);
+        }
+
+        // Scroll Intersection Observer for Reveal Elements
+        const observerOptions = {
+            threshold: 0.15,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.reveal').forEach(el => {
+            observer.observe(el);
+        });
+
+        // RSVP Response Modal Handling
+        function handleRsvp(choice) {
+            const modal = document.getElementById('rsvp-modal');
+            const modalCard = document.getElementById('rsvp-modal-card');
+            const iconWrapper = document.getElementById('modal-icon-wrapper');
+            const title = document.getElementById('modal-title');
+            const message = document.getElementById('modal-message');
+
+            if (choice === 'yes') {
+                iconWrapper.className = 'w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4 text-2xl bg-cyan-500/20 text-cyan-300 border border-cyan-400/40';
+                iconWrapper.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+                title.innerText = 'Керемет!';
+                message.innerText = 'Сізді GALACTIC FEST кешінде күтеміз.';
+            } else {
+                iconWrapper.className = 'w-16 h-16 rounded-full mx-auto flex items-center justify-center mb-4 text-2xl bg-purple-500/20 text-purple-300 border border-purple-400/40';
+                iconWrapper.innerHTML = '<i class="fa-solid fa-heart"></i>';
+                title.innerText = 'Рақмет!';
+                message.innerText = 'Назар аударғаныңызға рақмет. Сізге деген құрметіміз әрдайым жоғары.';
+            }
+
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.classList.add('opacity-100');
+            modalCard.classList.remove('scale-90');
+            modalCard.classList.add('scale-100');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('rsvp-modal');
+            const modalCard = document.getElementById('rsvp-modal-card');
+
+            modalCard.classList.remove('scale-100');
+            modalCard.classList.add('scale-90');
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+        }
+    </script>
+</body>
+</html>
